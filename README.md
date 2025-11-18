@@ -1,72 +1,72 @@
+# Huffman Lab - Созданные файлы
 
-# Huffman Lab - Files created
+Файлы:
+- HuffmanCoder.java            : Исходный код на Java (кодировщик/декодировщик для командной строки)
+- test1_10same.txt            : Текстовый файл с 10 одинаковыми символами ("1111111111")
+- test2_20_3symbols.txt       : Текстовый файл с 20 символами "11111111112222233333"
+- FORMAT_DESCRIPTION.txt      : Объяснение двоичного формата закодированного файла и принципов декодирования
+- BUILD_AND_RUN.txt           : Инструкции по компиляции и запуску, а также примеры кодирования/декодирования
 
-Files:
-- HuffmanCoder.java            : Java source code (command-line encoder/decoder)
-- test1_10same.txt            : Text file with 10 identical characters ("1111111111")
-- test2_20_3symbols.txt       : Text file with 20 characters "11111111112222233333"
-- FORMAT_DESCRIPTION.txt      : Explanation of the encoded file binary format and how decoding works
-- BUILD_AND_RUN.txt           : Instructions to compile and run, plus examples for encoding/decoding
+# СБОРКА И ЗАПУСК
 
-# BUILD&RUN
-1) Compile:
-   Open terminal in the directory containing HuffmanCoder.java and run:
+1) Компиляция:
+   Откройте терминал в директории, содержащей HuffmanCoder.java, и выполните:
    javac HuffmanCoder.java
-   This will produce HuffmanCoder.class (the requested binary class-file).
+   Это создаст HuffmanCoder.class (запрашиваемый бинарный class-файл).
 
-2) Encode examples:
-    - Encode test1 (raw bytes mode):
+2) Примеры кодирования:
+    - Закодировать test1 (режим сырых байтов):
       java HuffmanCoder -e -i test1_10same.txt -o test1_10same.hfm
-    - Encode test2 (unicode mode, treat input as UTF-8 code points):
+    - Закодировать test2 (режим Юникода, обрабатывать входные данные как кодовые точки UTF-8):
       java HuffmanCoder -e -u -i test2_20_3symbols.txt -o test2_20_3symbols.hfm
-    - Encode a compiled class file (binary test):
+    - Закодировать скомпилированный class-файл (тест с бинарными данными):
       javac HuffmanCoder.java
       java HuffmanCoder -e -i HuffmanCoder.class -o HuffmanCoder_class.hfm
-      (note: do not use -u for binary files)
+      (примечание: для бинарных файлов не используйте -u)
 
-3) Decode:
-    - Decode a .hfm file back to original:
+3) Декодирование:
+    - Декодировать .hfm файл обратно в оригинал:
       java HuffmanCoder -d -i test2_20_3symbols.hfm -o test2_decoded.txt
 
-4) Verify:
-   On UNIX-like systems you can compare original and decoded:
-   cmp --silent originalfile decodedfile && echo "UNCHANGED" || echo "DIFFER"
-   Or use 'sha256sum' to compare checksums.
+4) Проверка:
+   В UNIX-подобных системах можно сравнить оригинал и декодированный файл:
+   cmp --silent originalfile decodedfile && echo "ФАЙЛЫ ИДЕНТИЧНЫ" || echo "ФАЙЛЫ РАЗЛИЧАЮТСЯ"
+   Или используйте 'sha256sum' для сравнения контрольных сумм.
 
-5) Notes about Unicode:
-    - Use '-u' on encode to treat the input as a UTF-8 text file where symbols are Unicode code points.
-    - When decoding, the mode (unicode vs bytes) is stored in the encoded file header, so you don't need to pass '-u' when decoding.
+5) Примечания по Юникоду:
+    - Используйте '-u' при кодировании, чтобы обрабатывать входной файл как текст UTF-8, где символами являются кодовые точки Юникода.
+    - При декодировании режим (Юникод или байты) сохраняется в заголовке закодированного файла, поэтому передавать '-u' при декодировании не нужно.
 
-# Result file structure
+# Структура результирующего файла
 
-Encoded file format (binary) - human-readable description
+Формат закодированного файла (бинарный) - описание для человека
 
-Header:
-- 4 bytes: ASCII magic "HFM1" to identify the format
-- 1 byte : mode (0 = raw-bytes mode, 1 = unicode codepoints mode)
+Заголовок:
+- 4 байта: ASCII-магия "HFM1" для идентификации формата
+- 1 байт: режим (0 = режим сырых байтов, 1 = режим кодовых точек Юникода)
 
-Dictionary section:
-- 4 bytes: number of distinct symbols N (big-endian int)
-- Then N entries, each:
-    - 4 bytes: symbol id (int)
-        * If mode==0 (raw-bytes): symbol id is 0..255 representing the original byte value
-        * If mode==1 (unicode): symbol id is the Unicode code point (int)
-    - 8 bytes: frequency (long) -- how many times that symbol appears in original file
+Раздел словаря:
+- 4 байта: количество уникальных символов N (целое число, прямой порядок байтов)
+- Затем N записей, каждая:
+    - 4 байта: идентификатор символа (int)
+        * Если режим==0 (сырые байты): идентификатор символа — это 0..255, представляющее исходное значение байта
+        * Если режим==1 (Юникод): идентификатор символа — это кодовая точка Юникода (int)
+    - 8 байт: частота (long) -- сколько раз этот символ встречается в исходном файле
 
-Encoded bitstream metadata:
-- 8 bytes: total number of encoded bits (long)
+Метаданные закодированного битового потока:
+- 8 байт: общее количество закодированных бит (long)
 
-Encoded data:
-- Remaining bytes: the concatenation of Huffman code bits for the original symbols, packed MSB-first per byte.
-  The first encoded bit is the highest-order bit of the first byte written.
-  The last byte is padded with zeros on the right (least significant bits) if needed.
+Закодированные данные:
+- Оставшиеся байты: конкатенация битов кодов Хаффмана для исходных символов, упакованные в байты, начиная со старшего бита (MSB-first).
+  Первый закодированный бит является битом старшего разряда первого записанного байта.
+  Последний байт, если необходимо, дополнен нулями справа (в младших разрядах).
 
-Decoding:
-- Read the frequencies and reconstruct the Huffman tree using the same algorithm used for encoding.
-- Read exactly 'total number of encoded bits' bits from the bitstream and traverse the tree bit-by-bit to extract symbols.
-- If a single symbol exists in the dictionary (input had only one distinct symbol), decode by repeating that symbol frequency times.
-- For unicode mode, decoded code points are written as UTF-8 bytes to the output file.
+Декодирование:
+- Прочитайте частоты и восстановите дерево Хаффмана, используя тот же алгоритм, что и при кодировании.
+- Прочитайте ровно 'общее количество закодированных бит' из битового потока и проходите по дереву бит за битом, чтобы извлечь символы.
+- Если в словаре существует только один символ (во входных данных был только один уникальный символ), декодируйте, повторяя этот символ количество раз, равное его частоте.
+- Для режима Юникода декодированные кодовые точки записываются в выходной файл в виде байтов UTF-8.
 
-Notes:
-- This format stores the symbol frequencies; therefore the decoder can rebuild the same Huffman tree.
-- The implementation uses big-endian integer and long encodings via Java Data{Input,Output}Stream routines.
+Примечания:
+- Этот формат сохраняет частоты символов; следовательно, декодер может восстановить то же дерево Хаффмана.
+- Реализация использует кодирование целых чисел и long в прямом порядке байтов (big-endian) с помощью процедур Java Data{Input,Output}Stream.
